@@ -1,0 +1,146 @@
+{
+  "app": {
+    "name": "MUSTER BAW SEBN • PPE",
+    "version": "1.0.0",
+    "description": "Analyse intelligente des drawings, connecteurs et câblages",
+    "author": "SEBN",
+    "environment": "development"
+  },
+
+  "ui": {
+    "theme": {
+      "default": "light",
+      "storage_key": "musterTheme"
+    },
+    "animations": {
+      "enabled": true,
+      "duration_ms": 250,
+      "transition": "0.25s ease"
+    },
+    "toast": {
+      "duration_ms": 3500,
+      "position": "bottom-right"
+    }
+  },
+
+  "validation": {
+    "file": {
+      "max_size_mb": 50,
+      "allowed_types": ["application/pdf", "image/png", "image/jpeg", "image/jpg"],
+      "allowed_extensions": [".pdf", ".png", ".jpg", ".jpeg"]
+    }
+  },
+
+  "pages": {
+    "dashboard": {
+      "title": "Tableau de bord",
+      "icon": "fa-chart-line",
+      "section": "PRINCIPAL"
+    },
+    "projects": {
+      "title": "Gestion des projets",
+      "icon": "fa-folder-open",
+      "section": "PRINCIPAL"
+    },
+    "drawing-scanner": {
+      "title": "Scanner le Drawing",
+      "icon": "fa-file-import",
+      "section": "ANALYSE"
+    },
+    "ai-analyzer": {
+      "title": "Analyseur IA",
+      "icon": "fa-brain",
+      "section": "ANALYSE"
+    },
+    "manual-analysis": {
+      "title": "Analyse manuelle",
+      "icon": "fa-diagram-project",
+      "section": "ANALYSE"
+    },
+    "connectors": {
+      "title": "Connecteurs détectés",
+      "icon": "fa-plug",
+      "section": "CONNECTEURS"
+    },
+    "connector-3d": {
+      "title": "Vue 3D Connecteur",
+      "icon": "fa-cube",
+      "section": "CONNECTEURS"
+    },
+    "pinout": {
+      "title": "Pinout & Cavités",
+      "icon": "fa-table-cells",
+      "section": "CONNECTEURS"
+    },
+    "wire-list": {
+      "title": "Wire List",
+      "icon": "fa-list",
+      "section": "CÂBLAGE"
+    },
+    "wire-details": {
+      "title": "Détails des fils",
+      "icon": "fa-magnifying-glass-plus",
+      "section": "CÂBLAGE"
+    },
+    "terminals": {
+      "title": "Terminaux & Contacts",
+      "icon": "fa-layer-group",
+      "section": "CÂBLAGE"
+    },
+    "compatibility": {
+      "title": "Compatibilité",
+      "icon": "fa-check-double",
+      "section": "VALIDATION"
+    },
+    "validation": {
+      "title": "Validation humaine",
+      "icon": "fa-user-check",
+      "section": "VALIDATION"
+    },
+    "bom": {
+      "title": "Génération BOM",
+      "icon": "fa-file-csv",
+      "section": "RÉSULTATS"
+    },
+    "reports": {
+      "title": "Rapports & Historique",
+      "icon": "fa-chart-bar",
+      "section": "RÉSULTATS"
+    },
+    "database": {
+      "title": "Base de données",
+      "icon": "fa-database",
+      "section": "PARAMÈTRES"
+    },
+    "settings": {
+      "title": "Paramètres",
+      "icon": "fa-gear",
+      "section": "PARAMÈTRES"
+    }
+  },
+
+  "api": {
+    "base_url": "http://localhost:3000",
+    "timeout_ms": 30000,
+    "retry_attempts": 3
+  },
+
+  "keyboard_shortcuts": {
+    "search": "Ctrl+K",
+    "toggle_sidebar": "Ctrl+B",
+    "escape": "Escape"
+  },
+
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "max_errors": 100
+  },
+
+  "accessibility": {
+    "enabled": true,
+    "wcag_level": "AA",
+    "focus_visible": true,
+    "skip_to_main": true
+  }
+}
