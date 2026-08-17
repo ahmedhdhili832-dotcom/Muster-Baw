@@ -1,0 +1,654 @@
+/* =========================================================
+   CSS IMPROVEMENTS & BEST PRACTICES
+   MUSTER BAW SEBN • PPE
+========================================================= */
+
+/* =========================================================
+   01. ACCESSIBILITY IMPROVEMENTS
+========================================================= */
+
+/* Skip to main link */
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: white;
+    padding: 8px 12px;
+    z-index: 100;
+    border-radius: 0 0 4px 0;
+    transition: top var(--transition);
+}
+
+.skip-to-main:focus {
+    top: 0;
+}
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* =========================================================
+   02. PERFORMANCE OPTIMIZATIONS
+========================================================= */
+
+/* CSS Containment for better rendering performance */
+.sidebar-navigation {
+    contain: layout style paint;
+}
+
+.toast-container {
+    contain: layout style paint;
+}
+
+.page-container {
+    contain: layout style;
+}
+
+/* Optimize animations */
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromBottom {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.page {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.toast {
+    animation: slideInFromBottom 0.3s ease-out;
+}
+
+/* =========================================================
+   03. UTILITY CLASSES
+========================================================= */
+
+/* Text utilities */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.text-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.text-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Display utilities */
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.grid-auto {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+/* Opacity utilities */
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+
+/* =========================================================
+   04. RESPONSIVE IMPROVEMENTS
+========================================================= */
+
+/* Tablet optimization */
+@media (min-width: 640px) and (max-width: 1024px) {
+    :root {
+        --sidebar-width: 240px;
+    }
+    
+    .sidebar-navigation {
+        padding: 12px 8px;
+    }
+    
+    .nav-item span {
+        font-size: 11px;
+    }
+}
+
+/* =========================================================
+   05. ENHANCED FORM STYLES
+========================================================= */
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="file"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-main);
+    background: var(--bg-card);
+    transition: all var(--transition);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--blue-soft);
+    outline: none;
+}
+
+input[type="file"]::file-selector-button {
+    padding: 8px 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: var(--primary-dark);
+}
+
+/* =========================================================
+   06. ENHANCED CARD STYLES
+========================================================= */
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all var(--transition);
+}
+
+.card:hover {
+    box-shadow: var(--shadow);
+    border-color: var(--primary);
+}
+
+.card-compact {
+    padding: 12px;
+}
+
+/* =========================================================
+   07. ENHANCED BADGE STYLES
+========================================================= */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-primary {
+    background: var(--blue-soft);
+    color: var(--primary);
+}
+
+.badge-success {
+    background: var(--green-soft);
+    color: var(--success);
+}
+
+.badge-warning {
+    background: var(--orange-soft);
+    color: var(--warning);
+}
+
+.badge-danger {
+    background: #fecaca;
+    color: var(--danger);
+}
+
+/* =========================================================
+   08. TOAST IMPROVEMENTS
+========================================================= */
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all var(--transition);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.success {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.toast.error {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.toast.warning {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.toast.info {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* =========================================================
+   09. BUTTON HOVER STATES
+========================================================= */
+
+button {
+    transition: all var(--transition);
+    user-select: none;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   10. LINK IMPROVEMENTS
+========================================================= */
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   11. SCROLLBAR STYLING
+========================================================= */
+
+/* Webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-light);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg-main);
+}
+
+/* =========================================================
+   12. PRINT STYLES
+========================================================= */
+
+@media print {
+    #sidebar,
+    .topbar,
+    .mobile-menu,
+    .topbar-actions,
+    .toast-container {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .page-container {
+        padding: 0;
+    }
+
+    button,
+    [type="button"],
+    [type="submit"],
+    [type="reset"] {
+        display: none;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+}
+
+/* =========================================================
+   13. ERROR & SUCCESS STATES
+========================================================= */
+
+.error-message {
+    padding: 10px;
+    background: #fee2e2;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    font-size: 13px;
+}
+
+.success-message {
+    padding: 10px;
+    background: var(--green-soft);
+    border: 1px solid var(--success);
+    border-radius: var(--radius-sm);
+    color: var(--success);
+    font-size: 13px;
+}
+
+.warning-message {
+    padding: 10px;
+    background: var(--orange-soft);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-sm);
+    color: var(--warning);
+    font-size: 13px;
+}
+
+/* =========================================================
+   14. LOADING STATES
+========================================================= */
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* =========================================================
+   15. RESPONSIVE SPACING
+========================================================= */
+
+@media (max-width: 640px) {
+    .page-container {
+        padding: 15px 12px;
+    }
+
+    .page-header {
+        padding: 15px 0;
+    }
+
+    .page-header h2 {
+        font-size: 18px;
+    }
+
+    .btn {
+        min-height: 44px;
+        padding: 0 12px;
+    }
+}
+
+/* =========================================================
+   16. DARK MODE ENHANCEMENTS
+========================================================= */
+
+body.dark-mode {
+    /* Additional dark mode variables if needed */
+    --scrollbar-thumb: #1f2937;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #374151;
+}
+
+/* =========================================================
+   17. DIALOG / MODAL IMPROVEMENTS
+========================================================= */
+
+dialog {
+    border: none;
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+    padding: 24px;
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+dialog > h1,
+dialog > h2 {
+    margin-top: 0;
+}
+
+/* =========================================================
+   18. ANIMATION PREFERS-REDUCED-MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar.mobile-open {
+        transition: none;
+    }
+
+    .toast {
+        transition: none;
+    }
+
+    .page {
+        animation: none;
+    }
+
+    button:active {
+        transform: none;
+    }
+}
+
+/* =========================================================
+   19. CUSTOM PROPERTIES FOR QUICK TWEAKS
+========================================================= */
+
+:root {
+    --focus-outline: 2px solid var(--primary);
+    --focus-offset: 2px;
+
+    --button-padding: 10px 16px;
+    --button-min-height: 36px;
+
+    --card-padding: 20px;
+    --card-gap: 15px;
+
+    --animation-fast: 0.15s ease;
+    --animation-normal: 0.3s ease;
+    --animation-slow: 0.5s ease;
+}
+
+/* =========================================================
+   20. SEMANTIC IMPROVEMENTS
+========================================================= */
+
+/* Section styling */
+section {
+    page-break-inside: avoid;
+}
+
+/* Article styling */
+article {
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Time styling */
+time {
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   21. MISC IMPROVEMENTS
+========================================================= */
+
+/* Remove default focus outline for better custom focus style */
+button:focus {
+    outline: none;
+}
+
+/* Improve image loading */
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* SVG improvements */
+svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Improve lists */
+ul, ol {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+li {
+    margin: 5px 0;
+}
+
+/* Code blocks */
+code {
+    background: var(--bg-main);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "Monaco", "Courier New", monospace;
+    font-size: 12px;
+}
+
+/* =========================================================
+   22. BREAKPOINT VARIABLES
+========================================================= */
+
+/* Mobile first approach */
+/* xs: 0px - 480px (default) */
+/* sm: 640px - portrait tablets */
+/* md: 1024px - landscape tablets & small desktops */
+/* lg: 1280px - desktops */
+/* xl: 1536px - large desktops */
