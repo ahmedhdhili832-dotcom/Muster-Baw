@@ -8,6 +8,14 @@
     if (!page) { page=document.createElement('section'); page.className='page'; page.id=`page-${id}`; wrap.appendChild(page); }
     return page;
   };
+  const loadOnboarding = () => {
+    if(window.MusterOnboarding || document.querySelector('script[data-onboarding-script]')) return;
+    const s=document.createElement('script');
+    s.src='src/js/onboarding.js';
+    s.dataset.onboardingScript='1';
+    s.onload=()=>window.MusterOnboarding?.refresh?.();
+    document.body.appendChild(s);
+  };
   const addNav = () => {
     const nav = $('.sidebar-navigation');
     if (!nav || nav.dataset.authNav) return;
@@ -29,7 +37,7 @@
     if(page==='leader-approvals') window.MusterAuth?.renderLeaderPage?.();
     window.scrollTo({top:0,behavior:'smooth'});
   };
-  function init(){ addNav(); if(location.hash==='#account') go('account'); if(location.hash==='#leader-approvals') go('leader-approvals'); }
+  function init(){ addNav(); loadOnboarding(); if(location.hash==='#account') go('account'); if(location.hash==='#leader-approvals') go('leader-approvals'); }
   window.addEventListener('hashchange',()=>{ const p=location.hash.slice(1); if(['account','leader-approvals'].includes(p)) go(p); });
   new MutationObserver(addNav).observe(document.body,{childList:true,subtree:true});
   window.MusterAuthRouter={go};
