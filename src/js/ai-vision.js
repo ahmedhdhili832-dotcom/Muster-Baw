@@ -1,0 +1,41 @@
+/* MUSTER BAW — Gemini Vision drawing analyzer */
+"use strict";
+(function(){
+  const KEY_STORE="musterGeminiApiKey";
+  const MODEL="gemini-3.6-flash";
+  const ENDPOINT="https://generativelanguage.googleapis.com/v1beta/interactions";
+  const schema={type:"object",properties:{summary:{type:"string"},drawing_type:{type:"string"},connectors:{type:"array",items:{type:"object",properties:{reference:{type:"string"},type:{type:"string"},pins:{type:"array",items:{type:"string"}},location:{type:"string"},confidence:{type:"number"}},required:["reference","type","pins","location","confidence"]}},wires:{type:"array",items:{type:"object",properties:{reference:{type:"string"},color:{type:"string"},section:{type:"string"},from:{type:"string"},to:{type:"string"},pin_from:{type:"string"},pin_to:{type:"string"},length:{type:"string"},terminal:{type:"string"},contact:{type:"string"},path:{type:"string"},confidence:{type:"number"}},required:["reference","color","section","from","to","pin_from","pin_to","length","terminal","contact","path","confidence"]}},warnings:{type:"array",items:{type:"string"}},confidence:{type:"number"}},required:["summary","drawing_type","connectors","wires","warnings","confidence"]};
+  const prompt=`You are MUSTER BAW Engineering Vision AI for automotive wire-harness drawings. Analyze the supplied drawing visually, not only OCR. Identify every visible connector, wire and electrical relationship you can justify. Follow colored wire paths and labels, identify connector references, pin/cavity labels, wire colors, cross-sections, terminal/contact references and approximate path/length when visible. Distinguish a real junction from a crossing when the drawing supports it. NEVER invent a value: use "unknown" when unreadable. Each confidence is 0..1. Return only the requested JSON. This is an engineering assistant: uncertain results MUST be flagged for human validation.`;
+  const $=(s,p=document)=>p.querySelector(s);
+  function key(){return localStorage.getItem(KEY_STORE)||""}
+  function b64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file)})}
+  function ensureUI(){
+    const page=$("#page-drawing-scanner"); if(!page||page.dataset.aiReady)return; page.dataset.aiReady="1";
+    const card=document.createElement("div"); card.className="dashboard-card ai-vision-card"; card.innerHTML=`<div class="card-header"><div><h3><i class="fa-solid fa-wand-magic-sparkles"></i> MUSTER BAW Vision AI</h3><p>Analyse multimodale du Drawing : fils, connecteurs, pins, chemins et relations.</p></div><button class="btn btn-small" id="aiKeyBtn"><i class="fa-solid fa-key"></i> Configurer IA</button></div><div class="ai-vision-actions"><button class="btn btn-primary" id="runAiDrawing"><i class="fa-solid fa-brain"></i> Analyser avec l'IA</button><span id="aiStatus">Aucun fichier sélectionné.</span></div><div id="aiResults" class="ai-results"></div>`; page.appendChild(card);
+    $("#aiKeyBtn").onclick=configureKey; $("#runAiDrawing").onclick=run;
+  }
+  async function configureKey(){
+    const current=key(); const value=prompt("Collez votre clé Gemini API. Elle sera conservée uniquement dans ce navigateur pour cette démo.",current); if(value===null)return; if(!value.trim()){localStorage.removeItem(KEY_STORE);alert("Clé supprimée.");return} localStorage.setItem(KEY_STORE,value.trim()); if(window.Toast)Toast.show("Clé Gemini enregistrée localement.");
+  }
+  function getFile(){const i=$("#drawingFile");return i&&i.files&&i.files[0]}
+  async function run(){
+    const file=getFile(); if(!file){Toast?.show("Choisissez d'abord un Drawing.","warning");return}
+    const apiKey=key(); if(!apiKey){await configureKey(); if(!key())return}
+    if(file.size>50*1024*1024){Toast?.show("Fichier trop volumineux. Limite inline Gemini : 50 MB.","error");return}
+    const status=$("#aiStatus"), out=$("#aiResults"), btn=$("#runAiDrawing"); btn.disabled=true; status.textContent="Analyse IA en cours… lecture visuelle du Drawing."; out.innerHTML=`<div class="ai-loading"><i class="fa-solid fa-spinner fa-spin"></i><span>Gemini Vision analyse les lignes, couleurs, connecteurs et relations…</span></div>`;
+    try{
+      const data=await b64(file);
+      const type=file.type||"application/octet-stream";
+      const media=type==="application/pdf"?{type:"document",data,mime_type:type}:{type:"image",data,mime_type:type};
+      const body={model:MODEL,input:[{type:"text",text:prompt},{type:media.type,data:media.data,mime_type:media.mime_type}],response_format:{type:"text",mime_type:"application/json",schema}};
+      const response=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key()},body:JSON.stringify(body)});
+      const raw=await response.text(); if(!response.ok)throw new Error(raw||`HTTP ${response.status}`);
+      const json=JSON.parse(raw); const text=json.output_text||json.outputs?.find(x=>x.type==="text")?.text; if(!text)throw new Error("Réponse IA vide");
+      const result=JSON.parse(text); localStorage.setItem("musterLastAiAnalysis",JSON.stringify({file:file.name,at:new Date().toISOString(),result})); render(result); status.textContent=`Analyse terminée : ${file.name}`; Toast?.show("Analyse IA terminée. Vérifiez les résultats avant validation.");
+    }catch(e){console.error(e); out.innerHTML=`<div class="ai-error"><strong>Analyse impossible</strong><p>${escapeHtml(e.message)}</p><small>Vérifiez la clé Gemini, la connexion Internet et le format du fichier.</small></div>`; status.textContent="Échec de l'analyse."; Toast?.show("Erreur pendant l'analyse IA.","error")}finally{btn.disabled=false}
+  }
+  function render(r){const out=$("#aiResults"); const con=r.connectors||[], wires=r.wires||[]; out.innerHTML=`<div class="ai-summary"><div><strong>Type</strong><span>${escapeHtml(r.drawing_type)}</span></div><div><strong>Confiance</strong><span>${Math.round((Number(r.confidence)||0)*100)}%</span></div><div><strong>Connecteurs</strong><span>${con.length}</span></div><div><strong>Fils</strong><span>${wires.length}</span></div></div><p class="ai-description">${escapeHtml(r.summary)}</p><div class="ai-result-grid"><section><h4>Connecteurs</h4><div class="table-container"><table class="data-table"><thead><tr><th>Référence</th><th>Type</th><th>Pins</th><th>Position</th><th>Conf.</th></tr></thead><tbody>${con.map(x=>`<tr><td>${escapeHtml(x.reference)}</td><td>${escapeHtml(x.type)}</td><td>${escapeHtml((x.pins||[]).join(", "))}</td><td>${escapeHtml(x.location)}</td><td>${pct(x.confidence)}</td></tr>`).join("")||empty("Aucun connecteur confirmé")}</tbody></table></div></section><section><h4>Wire List IA</h4><div class="table-container"><table class="data-table"><thead><tr><th>Wire</th><th>Couleur</th><th>Section</th><th>De → Vers</th><th>Pins</th><th>Terminal</th><th>Conf.</th></tr></thead><tbody>${wires.map(x=>`<tr><td>${escapeHtml(x.reference)}</td><td>${escapeHtml(x.color)}</td><td>${escapeHtml(x.section)}</td><td>${escapeHtml(x.from)} → ${escapeHtml(x.to)}</td><td>${escapeHtml(x.pin_from)} → ${escapeHtml(x.pin_to)}</td><td>${escapeHtml(x.terminal)} / ${escapeHtml(x.contact)}</td><td>${pct(x.confidence)}</td></tr>`).join("")||empty("Aucun fil suffisamment lisible")}</tbody></table></div></section></div><section class="ai-warnings"><h4><i class="fa-solid fa-triangle-exclamation"></i> Points à valider</h4><ul>${(r.warnings||[]).map(x=>`<li>${escapeHtml(x)}</li>`).join("")||"<li>Aucun avertissement généré.</li>"}</ul></section>`}
+  function pct(v){return Math.round((Number(v)||0)*100)+"%"} function empty(t){return `<tr><td colspan="8">${escapeHtml(t)}</td></tr>`} function escapeHtml(v){return String(v??"").replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+  const observe=()=>{ensureUI(); const input=$("#drawingFile"); if(input&&!input.dataset.aiStatus){input.dataset.aiStatus="1";input.addEventListener("change",()=>{const s=$("#aiStatus");if(s)s.textContent=input.files[0]?`Prêt pour l'IA : ${input.files[0].name}`:"Aucun fichier sélectionné."})}};
+  window.MusterVisionAI={ensureUI,run}; document.addEventListener("DOMContentLoaded",()=>{observe();new MutationObserver(observe).observe(document.body,{childList:true,subtree:true})});
+})();
