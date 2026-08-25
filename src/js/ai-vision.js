@@ -39,3 +39,12 @@
   const observe=()=>{ensureUI(); const input=$("#drawingFile"); if(input&&!input.dataset.aiStatus){input.dataset.aiStatus="1";input.addEventListener("change",()=>{const s=$("#aiStatus");if(s)s.textContent=input.files[0]?`Prêt pour l'IA : ${input.files[0].name}`:"Aucun fichier sélectionné."})}};
   window.MusterVisionAI={ensureUI,run}; document.addEventListener("DOMContentLoaded",()=>{observe();new MutationObserver(observe).observe(document.body,{childList:true,subtree:true})});
 })();
+
+/* Stable fix layer: preview first, then Vision AI; prevents legacy OCR/CV from blocking the upload. */
+(function loadStableLayers(){
+  const base="src/js/";
+  ["drawing-ai-stable.js","ai-vision-stable.js"].forEach(src=>{
+    if(document.querySelector(`script[src="${base}${src}"]`)) return;
+    const s=document.createElement("script"); s.src=base+src; s.async=false; document.body.appendChild(s);
+  });
+})();
