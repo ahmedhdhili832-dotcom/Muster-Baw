@@ -1,4 +1,4 @@
-name: Deploy MUSTER BAW to GitHub Pages
+name: Deploy MUSTER BAW
 
 on:
   push:
@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  github-pages:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -32,3 +32,16 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  netlify-functions:
+    if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy site and serverless functions to Netlify
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --prod --dir=. --site=${{ secrets.NETLIFY_SITE_ID }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
