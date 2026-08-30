@@ -1,4 +1,4 @@
-const MODEL = "gpt-5-mini";
+const MODEL = "gpt-5.6-luna";
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 
 const schema = {
@@ -7,41 +7,17 @@ const schema = {
     summary: { type: "string" },
     drawing_type: { type: "string" },
     connectors: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          reference: { type: "string" },
-          type: { type: "string" },
-          pins: { type: "array", items: { type: "string" } },
-          location: { type: "string" },
-          confidence: { type: "number" }
-        },
-        required: ["reference", "type", "pins", "location", "confidence"],
-        additionalProperties: false
-      }
+      type: "array", items: { type: "object", properties: {
+        reference: { type: "string" }, type: { type: "string" }, pins: { type: "array", items: { type: "string" } },
+        location: { type: "string" }, confidence: { type: "number" }
+      }, required: ["reference", "type", "pins", "location", "confidence"], additionalProperties: false }
     },
     wires: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          reference: { type: "string" },
-          color: { type: "string" },
-          section: { type: "string" },
-          from: { type: "string" },
-          to: { type: "string" },
-          pin_from: { type: "string" },
-          pin_to: { type: "string" },
-          length: { type: "string" },
-          terminal: { type: "string" },
-          contact: { type: "string" },
-          path: { type: "string" },
-          confidence: { type: "number" }
-        },
-        required: ["reference", "color", "section", "from", "to", "pin_from", "pin_to", "length", "terminal", "contact", "path", "confidence"],
-        additionalProperties: false
-      }
+      type: "array", items: { type: "object", properties: {
+        reference: { type: "string" }, color: { type: "string" }, section: { type: "string" },
+        from: { type: "string" }, to: { type: "string" }, pin_from: { type: "string" }, pin_to: { type: "string" },
+        length: { type: "string" }, terminal: { type: "string" }, contact: { type: "string" }, path: { type: "string" }, confidence: { type: "number" }
+      }, required: ["reference", "color", "section", "from", "to", "pin_from", "pin_to", "length", "terminal", "contact", "path", "confidence"], additionalProperties: false }
     },
     warnings: { type: "array", items: { type: "string" } },
     confidence: { type: "number" }
@@ -51,13 +27,15 @@ const schema = {
 };
 
 const instruction = `You are MUSTER BAW Engineering Vision AI for automotive wire-harness drawings.
-Analyze the supplied drawing visually, not OCR alone. Identify visible connectors, wires, electrical symbols and relationships you can justify.
-Trace colored wire paths when visible. Read connector references, pin/cavity labels, wire colors, cross-sections, terminal/contact references, branches and approximate paths/lengths when visible.
-Distinguish crossings from true junctions only when the drawing supports it.
-For every wire, try to identify reference, color, section, from/to, pin_from/pin_to, length, terminal, contact and path.
-NEVER invent data. If a value cannot be read or inferred safely from the drawing, return "unknown".
-Confidence must be a number from 0 to 1. Flag uncertain engineering relationships in warnings.
-The output will be reviewed by a human, so precision is more important than filling every field.`;
+Analyze the supplied engineering drawing visually and spatially. OCR alone is not sufficient.
+Identify only elements that are actually visible or strongly supported by the drawing.
+Trace wire paths where possible; identify connector references, cavity/pin labels, wire colors, cross-sections, terminal/contact references, branches, junctions and approximate lengths when visible.
+A line crossing is NOT a junction unless the drawing visually supports a junction.
+For every wire, populate reference, color, section, from, to, pin_from, pin_to, length, terminal, contact and path when readable.
+Use the exact visible text where possible. NEVER invent a reference, pin, terminal, color, section, length or relationship.
+If a value cannot be read safely, return "unknown". If a complete wire relationship cannot be justified, do not fabricate it; add a warning instead.
+Confidence values are 0..1 and must reflect visual certainty, not guesswork.
+This is an engineering-assistance tool. All uncertain results must be flagged for human validation.`;
 
 function json(statusCode, data) {
   return new Response(JSON.stringify(data), {
@@ -81,38 +59,21 @@ export default async (request) => {
 
   try {
     const body = await request.json();
-    const { data, mimeType, fileName } = body || {};
+    const { data, mimeType, fileName, pages } = body || {};
     if (!data || !mimeType) return json(400, { error: "Missing drawing data or MIME type." });
-    if (!/^image\/(png|jpeg|webp|gif)$/i.test(mimeType)) {
-      return json(400, { error: "Unsupported drawing format. Please use PNG, JPEG, WEBP or GIF." });
-    }
-    if (typeof data !== "string" || data.length > 6000000) {
-      return json(413, { error: "Drawing is too large. Use a compressed image below 4.5 MB." });
-    }
+    if (!/^image\/(png|jpeg|webp|gif)$/i.test(mimeType)) return json(400, { error: "Unsupported analysis image format." });
+    if (typeof data !== "string" || data.length > 6000000) return json(413, { error: "Drawing is too large. Use a compressed image below 4.5 MB." });
 
     const response = await fetch(OPENAI_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: MODEL,
-        input: [{
-          role: "user",
-          content: [
-            { type: "input_text", text: `${instruction}\nFile: ${fileName || "drawing"}` },
-            { type: "input_image", image_url: `data:${mimeType};base64,${data}`, detail: "high" }
-          ]
-        }],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "muster_baw_analysis",
-            strict: true,
-            schema
-          }
-        }
+        input: [{ role: "user", content: [
+          { type: "input_text", text: `${instruction}\nFile: ${fileName || "drawing"}${pages ? `\nSource pages: ${pages}. The supplied visual is the first rendered page.` : ""}` },
+          { type: "input_image", image_url: `data:${mimeType};base64,${data}`, detail: "high" }
+        ] }],
+        text: { format: { type: "json_schema", name: "muster_baw_analysis", strict: true, schema } }
       })
     });
 
@@ -131,7 +92,7 @@ export default async (request) => {
     try { result = JSON.parse(text); }
     catch (_) { return json(502, { error: "OpenAI returned invalid JSON.", raw: text.slice(0, 2000) }); }
 
-    return json(200, { ok: true, provider: "OpenAI", model: MODEL, fileName: fileName || "drawing", result });
+    return json(200, { ok: true, provider: "OpenAI", model: MODEL, fileName: fileName || "drawing", pages: pages || 1, result });
   } catch (error) {
     return json(500, { error: error?.message || "Unexpected server error." });
   }
